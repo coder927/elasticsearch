@@ -62,6 +62,9 @@ import static org.elasticsearch.common.util.concurrent.ConcurrentCollections.new
  * follower has failed the leader will remove it from the cluster. We are fairly lenient, possibly allowing multiple checks to fail before
  * considering a follower to be faulty, to allow for a brief network partition or a long GC cycle to occur without triggering the removal of
  * a node and the consequent shard reallocation.
+ *
+ * @explain 是leader节点检查他的followers是否连接和健康状态
+ *
  */
 public class FollowersChecker {
 

@@ -549,14 +549,14 @@ public class Coordinator extends AbstractLifecycleComponent implements Discovery
                 discoveryUpgradeService.activate(lastKnownLeader, coordinationState.get().getLastAcceptedState());
             }
 
-            leaderChecker.setCurrentNodes(DiscoveryNodes.EMPTY_NODES);
-            leaderChecker.updateLeader(null);
+            leaderChecker.setCurrentNodes(DiscoveryNodes.EMPTY_NODES);  //@explain 设置为EMPTY_NODES
+            leaderChecker.updateLeader(null); //@explain 设置Leader为null
 
             followersChecker.clearCurrentNodes();
             followersChecker.updateFastResponseState(getCurrentTerm(), mode);
             lagDetector.clearTrackedNodes();
 
-            if (prevMode == Mode.LEADER) {
+            if (prevMode == Mode.LEADER) {  //@explain 如果之前的状态是leader
                 cleanMasterService();
             }
 
@@ -719,6 +719,9 @@ public class Coordinator extends AbstractLifecycleComponent implements Discovery
     }
 
     @Override
+    /**
+     * @explain 开始进行选举
+     */
     public void startInitialJoin() {
         synchronized (mutex) {
             becomeCandidate("startInitialJoin");

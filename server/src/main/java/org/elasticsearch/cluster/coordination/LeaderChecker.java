@@ -59,6 +59,13 @@ import java.util.function.Consumer;
  * fairly lenient, possibly allowing multiple checks to fail before considering the leader to be faulty, to allow for the leader to
  * temporarily stand down on occasion, e.g. if it needs to move to a higher term. On deciding that the leader has failed a follower will
  * become a candidate and attempt to become a leader itself.
+ *
+ * @explain
+ * LeaderChecker主要职责是允许followers去检查当前被选定的leader是否是连接和健康状态
+ * 我们非常宽大，在认为leader有问题之前，可以允许多次检查失败。也允许leader偶尔暂时挂掉，
+ * 如果需要状态到达更高的term,决定leader失败，一个follower将变成candidate并且它自己尝试变成leader
+ *
+ *
  */
 public class LeaderChecker {
 
@@ -124,6 +131,7 @@ public class LeaderChecker {
         });
     }
 
+    //是否为leader
     public DiscoveryNode leader() {
         CheckScheduler checkScheduler = currentChecker.get();
         return checkScheduler == null ? null : checkScheduler.leader;
@@ -131,6 +139,7 @@ public class LeaderChecker {
 
     /**
      * Starts and / or stops a leader checker for the given leader. Should only be called after successfully joining this leader.
+     * @explain 根据给定的leader，启动或者停止一个leader检查。只有在成功joining到leader时，才被调用
      *
      * @param leader the node to be checked as leader, or null if checks should be disabled
      */
@@ -164,7 +173,7 @@ public class LeaderChecker {
         this.discoveryNodes = discoveryNodes;
     }
 
-    // For assertions
+    // For assertions @explain 当前节点是否是master
     boolean currentNodeIsMaster() {
         return discoveryNodes.isLocalNodeElectedMaster();
     }
@@ -222,7 +231,7 @@ public class LeaderChecker {
 
             final String actionName;
             final TransportRequest transportRequest;
-            if (Coordinator.isZen1Node(leader)) {
+            if (Coordinator.isZen1Node(leader)) {//@explain 判断是否是zen1的节点
                 actionName = MasterFaultDetection.MASTER_PING_ACTION_NAME;
                 transportRequest = new MasterFaultDetection.MasterPingRequest(
                     transportService.getLocalNode(), leader, ClusterName.CLUSTER_NAME_SETTING.get(settings));
