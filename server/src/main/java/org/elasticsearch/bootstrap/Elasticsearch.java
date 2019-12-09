@@ -71,6 +71,7 @@ class Elasticsearch extends EnvironmentAwareCommand {
 
     /**
      * Main entry point for starting elasticsearch
+     * @explain Elasticsearch构造方法中会解析脚本中的参数
      */
     public static void main(final String[] args) throws Exception {
         overrideDnsCachePolicyProperties();
