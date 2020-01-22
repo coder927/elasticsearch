@@ -230,6 +230,7 @@ public class IndicesClusterStateService extends AbstractLifecycleComponent imple
     protected void doClose() {
     }
 
+    // 当集群状态变化时，会触发createOrUpdateShards函数的调用,分析recovery的流程的起点
     @Override
     public synchronized void applyClusterState(final ClusterChangedEvent event) {
         if (!lifecycle.started()) {

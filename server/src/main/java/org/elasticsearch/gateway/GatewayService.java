@@ -200,7 +200,7 @@ public class GatewayService extends AbstractLifecycleComponent implements Cluste
             performStateRecovery(enforceRecoverAfterTime, reason);
         }
     }
-
+    //集群和索引元数据准备完毕，开始执行state recovery
     private void performStateRecovery(final boolean enforceRecoverAfterTime, final String reason) {
         if (enforceRecoverAfterTime && recoverAfterTime != null) {
             if (scheduledRecovery.compareAndSet(false, true)) {
