@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
+ * 检查文件,标识从硬盘读取meta文件的读取位置，文件例如：manifest-0.st
  * This class represents the manifest file, which is the entry point for reading meta data from disk.
  * Metadata consists of global metadata and index metadata.
  * When new version of metadata is written it's assigned some generation long value.
