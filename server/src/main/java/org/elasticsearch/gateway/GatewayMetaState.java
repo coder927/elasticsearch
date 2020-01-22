@@ -62,6 +62,7 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 /**
+ * 用于从硬盘存储和查询metadata
  * This class is responsible for storing/retrieving metadata to/from disk.
  * When instance of this class is created, constructor ensures that this version is compatible with state stored on disk and performs
  * state upgrade if necessary. Also it checks that atomic move is supported on the filesystem level, because it's a must for metadata
