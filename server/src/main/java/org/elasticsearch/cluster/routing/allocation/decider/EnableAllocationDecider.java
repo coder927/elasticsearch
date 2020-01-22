@@ -32,6 +32,15 @@ import org.elasticsearch.common.settings.Setting.Property;
 import org.elasticsearch.common.settings.Settings;
 
 /**
+ * 定义了Allocate策略和Rebalance策略，策略会读取系统动态配置，配置分cluster级别和index级别
+ * 如果都配置了，index级别会覆盖cluster级别。
+ * Allocate策略会读取cluster级别”cluster.routing.allocation.enable”配置，默认为all
+ *
+ * all - (默认) 所有类型均允许allocation
+ * primaries - 只允许allocation主分片.
+ * new_primaries - 只允许allocation 新创建index的主分片.
+ * none - 所有的分片都不允许allocation
+ *
  * This allocation decider allows shard allocations / rebalancing via the cluster wide settings
  * {@link #CLUSTER_ROUTING_ALLOCATION_ENABLE_SETTING} / {@link #CLUSTER_ROUTING_REBALANCE_ENABLE_SETTING} and the per index setting
  * {@link #INDEX_ROUTING_ALLOCATION_ENABLE_SETTING} / {@link #INDEX_ROUTING_REBALANCE_ENABLE_SETTING}.

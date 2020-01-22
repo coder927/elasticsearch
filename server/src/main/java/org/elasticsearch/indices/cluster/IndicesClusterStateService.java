@@ -578,11 +578,11 @@ public class IndicesClusterStateService extends AbstractLifecycleComponent imple
 
         for (final ShardRouting shardRouting : localRoutingNode) {
             ShardId shardId = shardRouting.shardId();
-            if (failedShardsCache.containsKey(shardId) == false) {
+            if (failedShardsCache.containsKey(shardId) == false) {//失败的shard缓存中不包含这个shardId
                 AllocatedIndex<? extends Shard> indexService = indicesService.indexService(shardId.getIndex());
                 assert indexService != null : "index " + shardId.getIndex() + " should have been created by createIndices";
                 Shard shard = indexService.getShardOrNull(shardId.id());
-                if (shard == null) {
+                if (shard == null) {//没有获取到这个分片，需要重建这个分片
                     assert shardRouting.initializing() : shardRouting + " should have been removed by failMissingShards";
                     createShard(nodes, routingTable, shardRouting, state);
                 } else {
@@ -596,8 +596,8 @@ public class IndicesClusterStateService extends AbstractLifecycleComponent imple
         assert shardRouting.initializing() : "only allow shard creation for initializing shard but was " + shardRouting;
 
         DiscoveryNode sourceNode = null;
-        if (shardRouting.recoverySource().getType() == Type.PEER)  {
-            sourceNode = findSourceNodeForPeerRecovery(logger, routingTable, nodes, shardRouting);
+        if (shardRouting.recoverySource().getType() == Type.PEER)  {    //判断recovery source是否是peer类型
+            sourceNode = findSourceNodeForPeerRecovery(logger, routingTable, nodes, shardRouting);//找到恢复的sourceNode
             if (sourceNode == null) {
                 logger.trace("ignoring initializing shard {} - no source node can be found.", shardRouting.shardId());
                 return;
@@ -667,8 +667,10 @@ public class IndicesClusterStateService extends AbstractLifecycleComponent imple
                                                                ShardRouting shardRouting) {
         DiscoveryNode sourceNode = null;
         if (!shardRouting.primary()) {
+            //通过分片的路由表，获取这个分片对应的主分片位置
             ShardRouting primary = routingTable.shardRoutingTable(shardRouting.shardId()).primaryShard();
             // only recover from started primary, if we can't find one, we will do it next round
+            //只从运行的主分片恢复，如果没有，我们在下一回合，执行它
             if (primary.active()) {
                 sourceNode = nodes.get(primary.currentNodeId());
                 if (sourceNode == null) {

@@ -27,6 +27,9 @@ import org.elasticsearch.cluster.routing.allocation.RoutingAllocation;
 import org.elasticsearch.common.settings.Setting;
 
 /**
+ *  定义了Shard维度的Allocation策略，防止Shard在失败次数达到上限后继续分配
+ *  当Shard分配次数超过配置的最大次数时，这个策略生效，
+ *  返回Decision.NO；可以通过配置”index.allocation.max_retries”
  * An allocation decider that prevents shards from being allocated on any node if the shards allocation has been retried N times without
  * success. This means if a shard has been INITIALIZING N times in a row without being moved to STARTED the shard will be ignored until
  * the setting for {@code index.allocation.max_retry} is raised. The default value is {@code 5}.

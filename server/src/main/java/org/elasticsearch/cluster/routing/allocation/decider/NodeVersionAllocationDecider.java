@@ -27,6 +27,10 @@ import org.elasticsearch.cluster.routing.ShardRouting;
 import org.elasticsearch.cluster.routing.allocation.RoutingAllocation;
 
 /**
+ * 定义了Allocate策略，检查分片所在target Node的版本是否高于source Node的ES版本
+ * 如果高于，不允许allocation，这种策略的目的是避免目标Node无法适配高版本lucencn格式的文件，
+ * 一般集群ES都是一致的，当集群在进行ES版本滚动升级时，会出现版本不一致的情况。
+ *
  * An allocation decider that prevents relocation or allocation from nodes
  * that might not be version compatible. If we relocate from a node that runs
  * a newer version than the node we relocate to this might cause {@link org.apache.lucene.index.IndexFormatTooNewException}

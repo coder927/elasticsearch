@@ -31,6 +31,11 @@ import org.elasticsearch.common.settings.Setting.Property;
 import org.elasticsearch.common.settings.Settings;
 
 /**
+ * 检查系统动态配置”cluster.routing.allocation.allow_rebalance”，可以配置这些选项:
+ * always - 不管如何都允许Rebalance.
+ * indices_primaries_active - 集群内所有主分片都已经分配后，允许Rebalance，也就是在集群是red状态不允许Rebalance.
+ * indices_all_active - (default) 所有的分片一分配才允许Rebalance，此时集群状态要是green状才行
+ *
  * This {@link AllocationDecider} controls re-balancing operations based on the
  * cluster wide active shard state. This decided can not be configured in
  * real-time and should be pre-cluster start via

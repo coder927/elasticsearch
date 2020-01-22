@@ -29,8 +29,13 @@ import org.elasticsearch.common.settings.Setting.Property;
 import org.elasticsearch.common.settings.Settings;
 
 /**
+ *
+ * 定义了Allocate策略，避免将shard的不同类型(主shard，副本shard)分配到同一个node上
  * An allocation decider that prevents multiple instances of the same shard to
  * be allocated on the same {@code node}.
+ *先检查已分配shard的NodeId是否和目标Node相同，相同肯定是不能分配。除了检查NodeId，
+ * 为了避免分配到同一台机器的不同Node，会检查已分配shard的Node ip和hostname是否和目标Node相同，
+ * 相同的话也是不允许分配的。
  *
  * The {@link #CLUSTER_ROUTING_ALLOCATION_SAME_HOST_SETTING} setting allows to perform a check to prevent
  * allocation of multiple instances of the same shard on a single {@code host},

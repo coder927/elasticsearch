@@ -83,6 +83,12 @@ public abstract class RecoverySource implements Writeable, ToXContentObject {
 
     }
 
+    /**
+     *     EXISTING_STORE ： 数据在节点本地存在，从本地节点恢复。
+     *     PEER ：本地数据不可用或不存在，从远端节点（源分片，一般是主分片）恢复。
+     *     SNAPSHOT ： 数据从备份仓库恢复。
+     *     LOCAL_SHARDS ： 分片合并（缩容）场景，从本地别的分片恢复。
+     */
     public enum Type {
         EMPTY_STORE,
         EXISTING_STORE,

@@ -24,6 +24,7 @@ import org.elasticsearch.cluster.routing.ShardRouting;
 import org.elasticsearch.cluster.routing.allocation.RoutingAllocation;
 
 /**
+ * 在分配副本分片时，检查主分片的状态，防止主分片不是Active情况下分配副本分片
  * An allocation strategy that only allows for a replica to be allocated when the primary is active.
  */
 public class ReplicaAfterPrimaryActiveAllocationDecider extends AllocationDecider {

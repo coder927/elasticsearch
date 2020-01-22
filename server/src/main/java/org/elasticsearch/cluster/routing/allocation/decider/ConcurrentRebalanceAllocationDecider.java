@@ -29,6 +29,11 @@ import org.elasticsearch.common.settings.Setting.Property;
 import org.elasticsearch.common.settings.Settings;
 
 /**
+ * 检查系统动态配置”cluster.routing.allocation.cluster_concurrent_rebalance”
+ *表示集群同时允许进行rebalance操作的并发数量，默认是2。
+ * 通过检查RoutingNodes类中维护的relocatingShards计数器，
+ * 看是否超过系统配置的并发数，超过则不允许执行Rebalance操作。
+ *
  * Similar to the {@link ClusterRebalanceAllocationDecider} this
  * {@link AllocationDecider} controls the number of currently in-progress
  * re-balance (relocation) operations and restricts node allocations if the

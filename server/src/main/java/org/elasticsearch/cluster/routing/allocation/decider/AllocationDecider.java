@@ -26,6 +26,9 @@ import org.elasticsearch.cluster.routing.allocation.RoutingAllocation;
 import org.elasticsearch.cluster.routing.allocation.decider.Decision.Type;
 
 /**
+ * 具体的实现类包含大约14种,比如：{@link MaxRetryAllocationDecider}
+ *
+ * 所有的Allocation由上面14个策略组成，通过全部的策略该Node才是一个符合策略条件的目标Node，允许进行后面的分片分配过程。
  * {@link AllocationDecider} is an abstract base class that allows to make
  * dynamic cluster- or index-wide shard allocation decisions on a per-node
  * basis.
@@ -49,6 +52,8 @@ public abstract class AllocationDecider {
     }
 
     /**
+     * 在rebalance过程中，当前Shard是否允许留在当前Node
+     * 默认是ALWAYS始终允许的
      * Returns a {@link Decision} whether the given shard routing can be remain
      * on the given node. The default is {@link Decision#ALWAYS}.
      */
@@ -65,6 +70,8 @@ public abstract class AllocationDecider {
     }
 
     /**
+     * 当前shard routing是否允许分配到目标Node
+     * 默认是ALWAYS始终允许的
      * Returns a {@link Decision} whether the given shard routing can be allocated at all at this state of the
      * {@link RoutingAllocation}. The default is {@link Decision#ALWAYS}.
      */
@@ -81,6 +88,8 @@ public abstract class AllocationDecider {
     }
 
     /**
+     * 当前shard routing是否允许rebalance
+     * 默认是ALWAYS始终允许的
      * Returns a {@link Decision} whether the cluster can execute
      * re-balanced operations at all.
      * {@link Decision#ALWAYS}.

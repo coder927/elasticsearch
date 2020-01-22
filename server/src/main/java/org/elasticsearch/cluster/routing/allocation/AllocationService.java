@@ -54,14 +54,84 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.elasticsearch.cluster.routing.UnassignedInfo.INDEX_DELAYED_NODE_LEFT_TIMEOUT_SETTING;
-
+import org.elasticsearch.cluster.routing.allocation.allocator.BalancedShardsAllocator;
 
 /**
+ * 这便是Shard分配，搬迁和平衡的全部过程，ElasticSearch通过这三个操作，保证Shard在Node之间均衡的分配，修改动态配置后完成Shard迁移，以及在集群运行过程中的自动均衡。
+ *
+ * allocation过程如下:
+ * 1. Allocation 触发条件
+ *
+ * 2. {@link AllocationService#reroute}方法
+ *
+ * 3. {@link BalancedShardsAllocator#allocate}
+ *
+ * 4. 执行如下方法
+ *    final Balancer balancer = new Balancer(logger, allocation, weightFunction, threshold);
+ *    balancer.allocateUnassigned();
+ *    balancer.moveShards();
+ *    balancer.balance();
+ *
+ *最后allocation的触发条件：
+ *
+ * 1	AllocationService.applyStartedShards	Shard启动状态修改
+ * 2	AllocationService.applyFailedShards	shard失效状态修改
+ * 3	AllocationService.disassociateDeadNodes	Node离开
+ * 4	AllocationService.reroute(AllocationCommands)	执行reloaction命令
+ * 5	TransportClusterUpdateSettingsAction.masterOperation	集群配置修改操作
+ * 6	MetaDataCreateIndexService.onlyCreateIndex	创建index请求
+ * 7	MetaDataDeleteIndexService.deleteIndices	删除索引操作
+ * 8	MetaDataIndexStateService.closeIndex	关闭index操作
+ * 9	MetaDataIndexStateService.openIndex	打开index操作
+ * 10	NodeJoinController.JoinTaskExecutor	通过zendiscovery发现的节点加入集群
+ * 11	GatewayService.GatewayRecoveryListener	通过GatewayRecovery恢复的Node加入集群
+ * 12	LocalAllocateDangledIndices.submitStateUpdateTask	恢复磁盘内存在而MateDate内不存在的index
+ * 13	RestoreService.restoreSnapshot	从Snapshot中恢复index
+ *
+ *
+ * 额外说明一下，上表中的第3点，当节点离开后，在系统动态配置”index.unassigned.node_left.delayed_timeout”的超时时间过后，
+ * 会触发”DelayedAllocationService.DelayedRerouteTask”，
+ * 会延迟搬迁操作，这样设置是为了避免网络抖动导致节点短暂离开触发Shard搬迁。
+ *
+ *
+ * 在分配分片时，会先后经过两个维度的验证：一个是Shard维度，一个是Node维度
+ * 其中Shard维有两个Decider:
+ * MaxRetryAllocationDecider和ReplicaAfterPrimaryActiveAllocationDecider。
+ * 接着挨个验证Node级别的分配策略，完成了未分配分片的分配步骤后，
+ * 接下来会进行分片是否需要迁移的检查，也就是下面的：
+ *
+ *《Move Shard》
+ * Move Shard过程会经过上面十四个策略实现的canRemain方法，判断当前Shard是否可以继续留在当前的Node上， 会经过：
+ *     AwarenessAllocationDecider的canRemain方法，判断是否满足awareness配置的感知参数
+ *     DiskThresholdDecider的canRemain方法，判断当前Node是否超过高水位线
+ *     FilterAllocationDecider的canRemain方法，判断当前Node是否符合过滤策略
+ *     ShardsLimitAllocationDecider的方法，判断当前Node是否满足index维度和cluster维度的限制条件
+ *
+ * 只有上面策略全部通过，Shard才允许停留在当前Node上，否则会执行Relocating Shard过程
+ * 完成了分片搬迁。
+ *
+ * 《Rebalance》
+ * 接下来会对集群中的分片均衡性做检查
+ * ES内通过Balancer.balance方法实现，我们看看Rebalance过程是怎样的：
+ *   Rebalance之前会经过上面十四个策略实现的canRebalance方法，
+ *   全部通过才会执行后面的Rebalance过程：
+ *   Rebalance过程是通过调用balanceByWeights()方法，该方法会计算shard所在每个Node的Weight值 其中，weight的计算公式为:
+ * weightShard = node.numShards() + numAdditionalShards - balancer.avgShardsPerNode()
+ * weightIndex = node.numShards(index) + numAdditionalShards - balancer.avgShardsPerNode(index)
+ * weight = theta0 * weightShard + theta1 * weightIndex
+ *
+ *注: numAdditionalShards，一般为0，调用weightShardAdded，weightShardRemoved，
+ * 分别为1和-1 theta0=“cluster.routing.allocation.balance.shard”系统动态配置项，默认值为0.45f
+ * theta1=“cluster.routing.allocation.balance.index”，系统动态配置项，默认值为0.55f
+ *
+ * 将算出的Weight最小和最大的差值与系统配置的“threshold”比较，超过threshold值会执行rebalance的shard搬迁，来均衡集群中的shard。
+ *
+ *
  * This service manages the node allocation of a cluster. For this reason the
  * {@link AllocationService} keeps {@link AllocationDeciders} to choose nodes
  * for shard allocation. This class also manages new nodes joining the cluster
  * and rerouting of shards.
- */
+ **/
 public class AllocationService {
 
     private static final Logger logger = LogManager.getLogger(AllocationService.class);

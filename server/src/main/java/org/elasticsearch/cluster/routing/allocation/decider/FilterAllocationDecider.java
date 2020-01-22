@@ -37,6 +37,29 @@ import static org.elasticsearch.cluster.node.DiscoveryNodeFilters.OpType.AND;
 import static org.elasticsearch.cluster.node.DiscoveryNodeFilters.OpType.OR;
 
 /**
+ * 定义了Allocate策略，明确指定是否允许分片分配到指定Node上，分为index级别和cluster级别
+ *     index.routing.allocation.require.{attribute}
+ *     index.routing.allocation.include{attribute}
+ *     index.routing.allocation.exclude.{attribute}
+ *     cluster.routing.allocation.require.{attribute}
+ *     cluster.routing.allocation.include.{attribute}
+ *     cluster.routing.allocation.exclude.{attribute}
+ *     require表示必须分配到指定node，include表示可以分配到指定node，exclude表示不允许分配到指定Node，cluster的配置会覆盖index级别的配置，比如index include某个node，cluster exclude某个node，最后的结果是exclude某个node，上面{attribute}表示node的匹配方式有：
+ *
+ *     _name 匹配node名称，多个node名称用逗号隔开
+ *     _ip 匹配node ip，多个ip用逗号隔开
+ *     _host 匹配node的host name 多个host name用逗号隔开
+ *
+ *     设置例如：
+ *     PUT _cluster/settings
+ * {
+ *   "transient" : {
+ *     "cluster.routing.allocation.exclude._ip" : “10.0.0.1,10.0.0.2"
+ *   }
+ * }
+ *
+ *
+ *
  * This {@link AllocationDecider} control shard allocation by include and
  * exclude filters via dynamic cluster and index routing settings.
  * <p>
